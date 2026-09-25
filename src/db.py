@@ -4,24 +4,45 @@ from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 
 
+# Load environment variables from .env
 load_dotenv()
 
 DB_URL = os.getenv("DB_URL")
 
 
 def get_engine():
-    if not DB_URL:
-        raise ValueError("DB_URL not found, check your .env file")
+    """
+    Create and return the PostgreSQL SQLAlchemy engine.
+    """
 
-    return create_engine(DB_URL)
+    if not DB_URL:
+        raise ValueError(
+            "DB_URL not found, check your .env file"
+        )
+
+    # Explicitly use psycopg2 because requirements.txt
+    # contains psycopg2-binary.
+    database_url = DB_URL.replace(
+        "postgresql://",
+        "postgresql+psycopg2://"
+    )
+
+    return create_engine(database_url)
 
 
 def init_tables():
+    """
+    Create all database tables if they do not already exist.
+    """
+
     engine = get_engine()
 
     with engine.connect() as conn:
 
+        # --------------------------------
         # Company dimension
+        # --------------------------------
+
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS dim_company (
                 company_id SERIAL PRIMARY KEY,
@@ -29,7 +50,10 @@ def init_tables():
             );
         """))
 
+        # --------------------------------
         # Location dimension
+        # --------------------------------
+
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS dim_location (
                 location_id SERIAL PRIMARY KEY,
@@ -37,7 +61,10 @@ def init_tables():
             );
         """))
 
+        # --------------------------------
         # Skill dimension
+        # --------------------------------
+
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS dim_skill (
                 skill_id SERIAL PRIMARY KEY,
@@ -45,10 +72,14 @@ def init_tables():
             );
         """))
 
+        # --------------------------------
         # Job postings fact table
+        # --------------------------------
+
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS fact_job_postings (
                 posting_id SERIAL PRIMARY KEY,
+
                 job_title TEXT NOT NULL,
 
                 company_id INT
@@ -60,6 +91,7 @@ def init_tables():
                 category TEXT,
 
                 salary_min NUMERIC,
+
                 salary_max NUMERIC,
 
                 posted_date DATE,
@@ -78,6 +110,10 @@ def init_tables():
 
 
 def reset_tables():
+    """
+    Delete all pipeline tables and recreate them.
+    """
+
     engine = get_engine()
 
     with engine.connect() as conn:
