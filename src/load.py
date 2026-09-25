@@ -1,7 +1,7 @@
 from sqlalchemy import text
 
-from db import get_engine
-from transform import run as get_clean_data
+from src.db import get_engine
+from src.transform import run as get_clean_data
 
 
 def get_company_id(conn, company_name):
@@ -180,11 +180,11 @@ def load_jobs(df):
     print(f"Total    : {inserted + skipped}")
 
 
-def run():
+def run(data_dir="data/raw"):
 
     print("Starting transformation...")
 
-    df = get_clean_data()
+    df = get_clean_data(data_dir)
 
     print(
         f"Loaded {len(df)} cleaned jobs."

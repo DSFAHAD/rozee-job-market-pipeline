@@ -4,13 +4,13 @@ import glob
 import os
 
 
-def load_latest_raw():
+def load_latest_raw(data_dir="data/raw"):
 
-    files = glob.glob("data/raw/*.json")
+    files = glob.glob(f"{data_dir}/*.json")
 
     if not files:
         raise FileNotFoundError(
-            "No raw files found, run extract.py first"
+            f"No JSON files found in {data_dir}"
         )
 
     latest = max(files, key=os.path.getctime)
@@ -73,9 +73,9 @@ def clean(df):
     return df.reset_index(drop=True)
 
 
-def run():
+def run(data_dir="data/raw"):
 
-    df = load_latest_raw()
+    df = load_latest_raw(data_dir)
 
     df = clean(df)
 
