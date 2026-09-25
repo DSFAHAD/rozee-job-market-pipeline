@@ -1,0 +1,29 @@
+name: Daily Job Scrape
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run pipeline
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+        run: |
+          cd src
+          python extract.py
+          python load.py
+          python validate.py

@@ -1,0 +1,18 @@
+venv/
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+.vscode/
+.idea/
+
+.streamlit/secrets.toml
+
+.DS_Store
+Thumbs.db
+
+# Raw scraped data
+data/raw/*
+!data/raw/.gitkeep
