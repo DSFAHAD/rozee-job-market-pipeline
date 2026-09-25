@@ -4,10 +4,12 @@ import os
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from sqlalchemy import text
-from src.db import get_engine
 import streamlit.components.v1 as components
 
+
+# ============================================================
+# PAGE CONFIGURATION
+# ============================================================
 
 st.set_page_config(
     page_title="Job Market Dashboard",
@@ -16,10 +18,19 @@ st.set_page_config(
 )
 
 
+# ============================================================
+# CUSTOM CSS
+# ============================================================
+
 st.markdown("""
 <style>
+
     .main {
-        background: linear-gradient(135deg, #0D0221 0%, #3C096C 100%);
+        background: linear-gradient(
+            135deg,
+            #0D0221 0%,
+            #3C096C 100%
+        );
     }
 
     h1, h2, h3 {
@@ -33,12 +44,15 @@ st.markdown("""
         border-radius: 16px;
         padding: 20px;
         text-align: center;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition:
+            transform 0.3s ease,
+            box-shadow 0.3s ease;
     }
 
     .metric-card:hover {
         transform: translateY(-6px);
-        box-shadow: 0 10px 30px rgba(122, 92, 250, 0.4);
+        box-shadow:
+            0 10px 30px rgba(122, 92, 250, 0.4);
     }
 
     div[data-testid="stDataFrame"] {
@@ -51,6 +65,7 @@ st.markdown("""
     }
 
     @keyframes fadeIn {
+
         from {
             opacity: 0;
             transform: translateY(10px);
@@ -60,48 +75,69 @@ st.markdown("""
             opacity: 1;
             transform: translateY(0);
         }
+
     }
 
     .stTabs [data-baseweb="tab"] {
         font-size: 16px;
         color: #c9c3e0;
     }
+
 </style>
 """, unsafe_allow_html=True)
 
+
+# ============================================================
+# ANIMATED METRIC
+# ============================================================
 
 def animated_metric(label, value):
 
     html_code = """
     <div class="metric-card"
-         style="background: rgba(255,255,255,0.06);
-         border:1px solid rgba(122,92,250,0.3);
-         border-radius:16px;
-         padding:20px;
-         text-align:center;
-         font-family: 'Segoe UI', sans-serif;">
+         style="
+            background: rgba(255,255,255,0.06);
+            border:1px solid rgba(122,92,250,0.3);
+            border-radius:16px;
+            padding:20px;
+            text-align:center;
+            font-family:'Segoe UI', sans-serif;
+         ">
 
         <div id="num"
-             style="font-size:40px;
-             font-weight:700;
-             background: linear-gradient(90deg, #7209B7, #38BDF8);
-             -webkit-background-clip:text;
-             -webkit-text-fill-color:transparent;">
+             style="
+                font-size:40px;
+                font-weight:700;
+                background:linear-gradient(
+                    90deg,
+                    #7209B7,
+                    #38BDF8
+                );
+                -webkit-background-clip:text;
+                -webkit-text-fill-color:transparent;
+             ">
             0
         </div>
 
-        <div style="color:#c9c3e0;
-                    font-size:14px;
-                    letter-spacing:1px;
-                    text-transform:uppercase;">
+        <div style="
+                color:#c9c3e0;
+                font-size:14px;
+                letter-spacing:1px;
+                text-transform:uppercase;
+             ">
             LABEL_PLACEHOLDER
         </div>
+
     </div>
 
     <script>
+
         let target = VALUE_PLACEHOLDER;
+
         let count = 0;
+
         let el = document.getElementById("num");
+
         let step = Math.ceil(target / 40) || 1;
 
         let interval = setInterval(function() {
@@ -109,13 +145,17 @@ def animated_metric(label, value):
             count += step;
 
             if (count >= target) {
+
                 count = target;
+
                 clearInterval(interval);
+
             }
 
             el.innerText = count;
 
         }, 25);
+
     </script>
     """
 
@@ -135,6 +175,10 @@ def animated_metric(label, value):
     )
 
 
+# ============================================================
+# DASHBOARD RENDERING
+# ============================================================
+
 def render_dashboard(df):
 
     if df.empty:
@@ -145,6 +189,10 @@ def render_dashboard(df):
 
         return
 
+
+    # --------------------------------------------------------
+    # METRICS
+    # --------------------------------------------------------
 
     col1, col2, col3 = st.columns(3)
 
@@ -176,6 +224,10 @@ def render_dashboard(df):
     st.write("")
 
 
+    # --------------------------------------------------------
+    # PLOT SETTINGS
+    # --------------------------------------------------------
+
     plot_bg = "rgba(0,0,0,0)"
 
     plot_font_color = "#e5e0ff"
@@ -186,6 +238,10 @@ def render_dashboard(df):
         "#38BDF8"
     ]
 
+
+    # ========================================================
+    # TOP HIRING COMPANIES
+    # ========================================================
 
     st.subheader(
         "🏢 Top Hiring Companies"
@@ -198,6 +254,7 @@ def render_dashboard(df):
         .head(10)
         .reset_index()
     )
+
 
     top_companies.columns = [
         "company",
@@ -233,6 +290,10 @@ def render_dashboard(df):
     )
 
 
+    # ========================================================
+    # TOP SKILLS
+    # ========================================================
+
     st.subheader(
         "🛠️ Top Skills in Demand"
     )
@@ -241,6 +302,7 @@ def render_dashboard(df):
     skills_series = (
         df["raw_skills"]
         .fillna("")
+        .astype(str)
         .str.split(", ")
         .explode()
     )
@@ -259,6 +321,7 @@ def render_dashboard(df):
             .head(10)
             .reset_index()
         )
+
 
         top_skills.columns = [
             "skill",
@@ -301,6 +364,10 @@ def render_dashboard(df):
             "No skills data available yet."
         )
 
+
+    # ========================================================
+    # POSTINGS BY CITY
+    # ========================================================
 
     st.subheader(
         "📍 Postings by Location"
@@ -352,8 +419,12 @@ def render_dashboard(df):
     )
 
 
+    # ========================================================
+    # RAW DATA
+    # ========================================================
+
     st.subheader(
-        "📋 Raw Data"
+        "📋 Job Market Data"
     )
 
 
@@ -363,58 +434,104 @@ def render_dashboard(df):
     )
 
 
+# ============================================================
+# PAGE HEADER
+# ============================================================
+
 st.title(
     "📊 Pakistan Tech Job Market"
 )
 
 st.caption(
-    "Live insights scraped from Rozee.pk"
+    "Job market insights collected from Rozee.pk"
 )
 
 
-engine = get_engine()
+# ============================================================
+# LOAD DATA FROM CSV
+# ============================================================
+
+CSV_PATH = "data/processed/job_market.csv"
 
 
-query = """
-    SELECT
-        f.posting_id,
-        f.job_title,
-        c.company_name,
-        l.city,
-        f.category,
-        f.salary_min,
-        f.salary_max,
-        f.posted_date,
-        f.raw_skills,
-        f.source_url,
-        f.scraped_at
+if not os.path.exists(CSV_PATH):
 
-    FROM fact_job_postings f
-
-    JOIN dim_company c
-        ON f.company_id = c.company_id
-
-    JOIN dim_location l
-        ON f.location_id = l.location_id
-"""
-
-
-with engine.connect() as conn:
-
-    full_df = pd.read_sql(
-        text(query),
-        conn
-    )
-
-
-if full_df.empty:
-
-    st.warning(
-        "No data yet, run the pipeline first."
+    st.error(
+        "Dataset not found. "
+        "Please make sure "
+        "`data/processed/job_market.csv` "
+        "exists in the repository."
     )
 
     st.stop()
 
+
+try:
+
+    full_df = pd.read_csv(
+        CSV_PATH
+    )
+
+except Exception as e:
+
+    st.error(
+        f"Unable to load dataset: {e}"
+    )
+
+    st.stop()
+
+
+# ============================================================
+# VALIDATE REQUIRED COLUMNS
+# ============================================================
+
+required_columns = [
+    "posting_id",
+    "job_title",
+    "company_name",
+    "city",
+    "category",
+    "salary_min",
+    "salary_max",
+    "posted_date",
+    "raw_skills",
+    "source_url"
+]
+
+
+missing_columns = [
+    column
+    for column in required_columns
+    if column not in full_df.columns
+]
+
+
+if missing_columns:
+
+    st.error(
+        "Dataset is missing required columns: "
+        + ", ".join(missing_columns)
+    )
+
+    st.stop()
+
+
+# ============================================================
+# CHECK DATA
+# ============================================================
+
+if full_df.empty:
+
+    st.warning(
+        "The dataset is empty."
+    )
+
+    st.stop()
+
+
+# ============================================================
+# DATASET INFORMATION
+# ============================================================
 
 st.subheader(
     "📥 Dataset"
@@ -422,15 +539,14 @@ st.subheader(
 
 
 st.write(
-    f"Current dataset contains **{len(full_df):,} job postings**."
+    f"Current dataset contains "
+    f"**{len(full_df):,} job postings**."
 )
 
 
-os.makedirs(
-    "data/processed",
-    exist_ok=True
-)
-
+# ============================================================
+# DOWNLOAD CSV
+# ============================================================
 
 csv_data = full_df.to_csv(
     index=False
@@ -445,21 +561,9 @@ st.download_button(
 )
 
 
-local_csv_path = (
-    "data/processed/job_market.csv"
-)
-
-
-full_df.to_csv(
-    local_csv_path,
-    index=False
-)
-
-
-st.success(
-    f"Dataset exported to `{local_csv_path}`"
-)
-
+# ============================================================
+# CATEGORY TABS
+# ============================================================
 
 categories = sorted(
     full_df["category"]
@@ -499,4 +603,3 @@ for tab, label in zip(
                     full_df["category"] == label
                 ]
             )
-
