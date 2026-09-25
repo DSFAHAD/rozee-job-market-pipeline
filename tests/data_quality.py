@@ -15,7 +15,14 @@ def get_engine():
             "DB_URL not found. Check your .env file."
         )
 
-    return create_engine(DB_URL)
+    # Explicitly use psycopg2 because
+    # requirements.txt contains psycopg2-binary.
+    database_url = DB_URL.replace(
+        "postgresql://",
+        "postgresql+psycopg2://"
+    )
+
+    return create_engine(database_url)
 
 
 def check_total_jobs(conn):
@@ -77,7 +84,9 @@ def check_null_company_ids(conn):
     ).scalar()
 
     if result > 0:
-        print(f"FAIL: {result} jobs have NULL company_id.")
+        print(
+            f"FAIL: {result} jobs have NULL company_id."
+        )
         return False
 
     print("PASS: No NULL company IDs.")
@@ -94,7 +103,9 @@ def check_null_location_ids(conn):
     ).scalar()
 
     if result > 0:
-        print(f"FAIL: {result} jobs have NULL location_id.")
+        print(
+            f"FAIL: {result} jobs have NULL location_id."
+        )
         return False
 
     print("PASS: No NULL location IDs.")
@@ -113,7 +124,9 @@ def check_orphan_companies(conn):
     ).scalar()
 
     if result > 0:
-        print(f"FAIL: {result} orphan company IDs found.")
+        print(
+            f"FAIL: {result} orphan company IDs found."
+        )
         return False
 
     print("PASS: All company IDs are valid.")
@@ -132,7 +145,9 @@ def check_orphan_locations(conn):
     ).scalar()
 
     if result > 0:
-        print(f"FAIL: {result} orphan location IDs found.")
+        print(
+            f"FAIL: {result} orphan location IDs found."
+        )
         return False
 
     print("PASS: All location IDs are valid.")
@@ -150,7 +165,9 @@ def check_empty_urls(conn):
     ).scalar()
 
     if result > 0:
-        print(f"FAIL: {result} empty source URLs found.")
+        print(
+            f"FAIL: {result} empty source URLs found."
+        )
         return False
 
     print("PASS: All jobs have source URLs.")
@@ -214,6 +231,7 @@ def run_quality_checks():
 
 
 if __name__ == "__main__":
+
     success = run_quality_checks()
 
     if not success:

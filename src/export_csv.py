@@ -1,16 +1,32 @@
 import os
+
 import pandas as pd
+
 from sqlalchemy import create_engine
+
 from dotenv import load_dotenv
+
 
 load_dotenv()
 
 DB_URL = os.getenv("DB_URL")
 
-if not DB_URL:
-    raise ValueError("DB_URL not found. Check your .env file.")
 
-engine = create_engine(DB_URL)
+if not DB_URL:
+    raise ValueError(
+        "DB_URL not found. Check your .env file."
+    )
+
+
+# Explicitly use psycopg2 because
+# requirements.txt contains psycopg2-binary.
+database_url = DB_URL.replace(
+    "postgresql://",
+    "postgresql+psycopg2://"
+)
+
+engine = create_engine(database_url)
+
 
 query = """
 SELECT
@@ -32,11 +48,17 @@ LEFT JOIN dim_location l
 ORDER BY f.posting_id;
 """
 
+
 df = pd.read_sql(query, engine)
+
 
 output_path = "data/processed/job_market.csv"
 
-df.to_csv(output_path, index=False)
+df.to_csv(
+    output_path,
+    index=False
+)
+
 
 print(f"Exported {len(df)} jobs.")
 print(f"Saved to: {output_path}")
